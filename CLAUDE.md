@@ -1,76 +1,80 @@
 # MORE+ App — Claude Code handover
 
-_Last updated 25 Sep 2026 by the Claude session that created this repo (session_01NST91DPWqqM5qVEeGhiCRB)._
+_Last updated 6 Oct 2026 — the "live site" rebuild (session_01A1qSyujH3KRMvV7KUMnkih). Earlier handover (25 Sep) is in git history._
 
 ## What this is
 
-The **MORE+** demo app — "the trusted decision network for women's health". A static, single-file
-single-page app (`index.html`) plus four partner demo dashboards and an `assets/` folder.
-Private investor / partner demo: **every page carries `<meta name="robots" content="noindex,nofollow">` — keep it.**
+The **MORE+** live site — "the trusted decision network for women's health". A static single-page app (`index.html`) plus `assets/`. No build step, no framework, no npm.
+`<meta name="robots" content="noindex,nofollow">` is still present on `index.html` pending Bridget's go-ahead to index; the four partner demo pages keep it permanently.
 
 ## Where things live
 
 | Thing | Location |
 |---|---|
-| Repo (source of truth) | `https://github.com/BJ888BJ/more-plus-app` — branch `main`, currently **public** |
-| Local clone | `~/Projects/more-plus-app` (this folder) |
-| GitHub auth | `gh` is logged in as **BJ888BJ** (`repo` scope); `gh auth setup-git` has been run, so plain `git push` works |
+| Repo (source of truth) | `https://github.com/BJ888BJ/more-plus-app` — branch `main` |
+| Local clone (Bridget's Mac mini) | `~/Projects/more-plus-app` — `gh` logged in as **BJ888BJ**, plain `git push` works |
 | Live site | **https://more-plus-app.onrender.com** |
-| Render service | Static site `more-plus-app`, id `srv-dar3dbk9v7es739bhdng`, workspace **Colibri Studios** (`tea-d8voh1r7uimc738mvheg`) — https://dashboard.render.com/static/srv-dar3dbk9v7es739bhdng |
-| Render config | repo above, branch `main`, build command _(none)_, publish path `./`, **auto-deploy on every push to `main`** (deploys take ~15 s) |
-| Pre-git working copy | Google Drive shared drive: `Colibri — Productions/CORP - More+/MORE+ App (Rebuild)/` — **do not edit there any more**; the repo wins |
-| Project notes | `~/Claude/Projects/More+/` — see `MORE+ — MASTER MEMORY.md`, `MORE+ Pre-Deploy Product Review.md`; the Rebuild folder also holds `MORE+ — Technical Audit.md`, `Product Images Needed.md`, `Show Videos Needed.md`, `Media Generation Brief.md` |
-| Old July site (superseded) | `more-plus-network.onrender.com` ← `github.com/tj888tj/more-plus-network` (Tobias's account, 5-page bundled build, last deploy 5 Jul). Left untouched. Decide whether to retire it. |
+| Render service | Static site `more-plus-app`, id `srv-dar3dbk9v7es739bhdng`, workspace **Colibri Studios** — auto-deploys on push to `main` (~15 s) |
+| Show key art originals | Google Drive `CORP - More+/Platform Shows/` (+ `More + Show artwork/`), PNG 1672×941 and 1024×1536 |
+| Product stills originals | Drive `CORP - More+/MORE+ App (Rebuild)/assets/` (Production Studio renders, 1264×848) |
+| Project notes | `~/Claude/Projects/More+/` — MASTER MEMORY, MIPCOM pitch copy (`MIPCOM 2026 Trailers/One-page pitches/*.md`), Verified methodology docs |
+| Build scratch | `~/Claude/Projects/More+/_site-build/` (outpainted art, git bundle) |
 
-## Repo contents
+## How `index.html` is organised
 
-- `index.html` — the whole app (~2 800 lines, HTML + CSS + JS in one file). No build step, no framework, no npm.
-- `bayer-dashboard.html`, `biotwin-dashboard.html`, `client-x-dashboard.html`, `evidence-editorial.html` — partner dashboards opened from the app via `demoOpen('…')`. They are "bundled pages" (show "Unpacking…" then self-inflate); each is 1.5–3.8 MB. Treat as opaque artefacts unless asked to rebuild them.
-- `assets/` — 108 files: show art (`<show>.jpg` 16:10 + `<show>-v.jpg` vertical poster + a few `<show>.mp4`), product stills `prod-a1…a41.jpg` (Tier A shelf) and `prod-p1…p23.jpg` (platform shelf), favicons, `icon-512.png`, `more-plus-wordmark-bone.png`.
-- `og-image.png` — social preview (not yet referenced by an `og:image` tag in `index.html`).
-- **Deliberately excluded** from the Drive folder: `MORE-plus-site.zip` (July handover bundle), `index-v1-backup.html`, `index-backup-20260904.html`, the `.md` briefs, `MORE+ — Ring Behaviour Brief.html`, and the unlinked `biomes-dashboard*.html`. `.gitignore` blocks `*.zip` and `*-backup*.html`.
+1. `<head>` + one `<style>` block (brand CSS; live-site additions at the end under "MORE+ Verified — live-site additions").
+2. Body: nav, `<main id="app">`, footer, mobile nav, drawer/modal/toast overlays.
+3. `<script>`: CONFIG → DATA (`PRODUCTS`, `CATEGORIES`, `NEEDS`, `STAGES`, `SHOWS`, `HERO_SLIDES`, `BREAKTHROUGHS`, `GOV_LINES`, `VERIFIED_CHECKS`) → persistence (`localStorage` key `moreplus.v3`: saved ids, profile, email only) → router `go(view,arg)` → view functions (`Home, Results, ShelfBrowse, Shows, Breakthroughs, Article, Standard, Participate`) → product drawer `openProduct(id)` → show modal `showModal(slug)` → My Shelf / profile quiz → email capture → motion.
 
-## How `index.html` works (orientation)
+### Product record schema
+`{id, cat, brand, name, forr, type, access, need[], stage[], url, regulatory, scope:'product'|'class', claim, trial:{label,id,url,design,n,year,finding}|null, review:{label,id,url}|null, summary, safety?}`
+- `id` must match `assets/prod-<id>.jpg`.
+- Every `trial.url` / `review.url` was verified on 6 Oct 2026 (PubMed IDs via NCBI E-utilities, NCT numbers via ClinicalTrials.gov API v2, guideline/brand URLs by fetch). Keep it that way: **no ID goes in without verification.**
+- No scores, ratings, user counts or prices — deliberately. `access` is plain words ("Prescription (UK)", "Buy direct (US)").
 
-- In-memory router: `go('<view>')`; views are `home, shelf-browse, shows, breakthroughs, standard, participate, partner, badge, results`. No `pushState`/hash — URLs never change, so Render needs no rewrite rules.
-- Asset prefix: `const A = 'assets/'`; images/videos are built as template strings (`${A}${s.img}.jpg`, `${A}prod-${p.id}.jpg`, etc.).
-- `evidenceUrl()` turns generic PubMed / ClinicalTrials / Cochrane links into real searches so "follow the proof" never lands on a homepage.
-- Fonts come from Google Fonts (external). Images are `loading="lazy"`. `prefers-reduced-motion` respected.
-- Demo persona switcher ("Client demo" pill, bottom right), guided tour, quiz, alerts, shelf, profile, search, filters are all client-side.
+### Show record schema
+`{slug, title, strand, format, status, log, about[], how[], tone, season[]?, episodes[{n,title,log,img}]?, video?, v:true, shop[]}`
+- `assets/show-<slug>.jpg` (1600×900) and `show-<slug>-v.jpg` (800×1200) must both exist. Episode art is `assets/ep-<slug>.jpg` (1280×720).
+- `video` names an `assets/<name>.mp4` preview loop (exists for built-to-move, code, first-time-at-40, invisible-battles).
+
+### Breakthrough record schema
+`{id, cat, img, read, date, prods[], title, dek, body:[{h}|{p}|{ev:{tag,title,finding,links[{l,u}]}}], sources[{l,u}]}`
+
+## Products removed from the shelf on 6 Oct 2026 (and why)
+Stills still exist in Drive; re-add only with verified evidence.
+- a4 FemBloc — CE-marked but pivotal trial still enrolling; early data in a non-indexed journal.
+- a5 Mira — only peer-reviewed comparison is n=4; FDA-registered, not cleared.
+- a9 Oova — no published validation.
+- a13 NUA SteriCISION — company site says pre-clinical, not approved anywhere (listing claim was false).
+- a23 iSono ATUSA — no published study; AI features investigational.
+- a32 PeriGen PeriWatch — adjusted outcome non-significant; claim unsupported.
+- a39 Elvie Pump, a40 Willow 360 — no trials (convenience products).
+- a41 Coroflo — company-reported validation only.
+- p10 Health & Her — the "Menopause CBT Programme" product doesn't exist (site = supplements + free app).
+- p14 Wild Nutrition myo-inositol 40:1 — product doesn't exist; still was generic.
+- p16 Invivo Femme V — no strain codes or trials published.
+- p17 BioTwin — "validated model" unsupported (one preprint).
+- p18 BIOMES INTEST.pro — no peer-reviewed validation found.
+- p19 Function Health — US-only, no outcome evidence.
+- p20 BetterYou magnesium spray — transdermal magnesium has no sleep evidence.
+
+Brand/name corrections made: p1 Vira Health → Theramex Evorel; p3 "Gynae Health" → Novo Nordisk Gina; p6 "Accredited Imaging" → DEXA scan (NHS/private, NHS page linked); p7 → Abbott FreeStyle Libre 3 Plus; a3 Phexxi → Phexx (Evofem); a14 Gynesonics (Hologic); a18 INNOVO (Caldera Medical); a26 Kheiron → DeepHealth; a29 Nuvo (post-bankruptcy owner); a31 Sonio (Samsung Medison).
+
+## Known soft spots
+- p3 still shows a cream; Gina is a vaginal tablet (re-render the still, or swap to an estriol cream product).
+- `show-strong-at-any-age.jpg` is an AI outpaint of the vertical poster (Higgsfield, 6 Oct); `show-100-healthy-years-v.jpg` and `show-longevity-oncology-v.jpg` are AI re-compositions of the horizontals. Replace with designed art when it exists.
+- a7 inne's effectiveness study is cited via a ScienceDirect listing (publisher blocks bots); confirm DOI when convenient.
+- Email sign-up: `SIGNUP_ENDPOINT` is empty → join buttons fall back to a pre-filled mailto. Paste a Formspree endpoint to go live.
+- Google Fonts are still external.
+- Usage rights for brand product stills are unlogged (as before).
 
 ## Working on it
-
-```bash
-cd ~/Projects/more-plus-app
-python3 -m http.server 8123          # then open http://localhost:8123
-# edit → check in browser → commit → push → Render auto-deploys → verify
-git add -A && git commit -m "…" && git push
 ```
-- Verify a deploy: `gh api repos/BJ888BJ/more-plus-app/commits --jq '.[0].sha'` should match the commit on
-  https://dashboard.render.com/static/srv-dar3dbk9v7es739bhdng ; then `curl -sI https://more-plus-app.onrender.com/`.
-- Sanity check after edits to `index.html`: `node --check` on the extracted script, every `go('x')` target has a handler,
-  every `assets/…` reference exists on disk, `grep -c 'name="robots"' *.html` = 5.
-- The Technical Audit (5 Jul) says the build was clean: no broken links, dead routes, undefined handlers or missing assets.
-
-## Known soft spots (from the Technical Audit — not blockers)
-
-1. Some trial IDs are illustrative placeholders (`PMID:INO401`, `NCT-CBTI-01`); six products carry real IDs. Swap placeholders for real studies before any public use.
-2. Partner / Badge pages use labelled sample data and an example `more.plus/embed.js` snippet — intentional.
-3. Product tiles are AI-restaged stills (Higgsfield) of each brand's real product image — usage rights per brand must be logged before public use. Still outstanding: prod-a4 (FemBloc — approved but needs brand asset), a13 (Nua Surgical), a18 (INNOVO), a15 (ELITONE), a34 (Bloomlife), p4 (Hertility), p14 (Myo-Inositol 40:1 — product doesn't exist at Wild Nutrition; swap or re-render).
-4. Show "video" is simulated with show art as poster; only 4 real mp4 clips exist (built-to-move, code, first-time-at-40, invisible-battles).
-5. Production hygiene to do: `width`/`height` on images, real `alt` text, self-host fonts, add `og:image` meta pointing at `og-image.png`.
-
-## Open decisions for Bridget
-
-- **Repo visibility**: it is public. The site is noindex, but the source and dashboards are readable by anyone with the GitHub URL. `gh repo edit BJ888BJ/more-plus-app --visibility private` flips it — but check the Render deploy still works afterwards (Render needs its GitHub app authorised on BJ888BJ for private repos).
-- **Drive copy**: the noindex tags exist only in the repo. Either stop using the Drive folder, or copy `index.html` + dashboards back once so they match.
-- **Old site**: retire `more-plus-network` on Render (and/or Tobias's repo) once this URL is shared instead.
-- **Custom domain**: none yet; add in the Render dashboard → Settings → Custom Domains when ready.
+cd ~/Projects/more-plus-app
+python3 -m http.server 8123          # open http://localhost:8123
+git add -A && git commit -m "…" && git push   # Render auto-deploys
+```
+Sanity checks after edits: `node --check` on the extracted script; every `go('x')` has a handler; every `assets/…` ref and every `show-/ep-/prod-` pattern resolves to a file; `grep -c 'name="robots"' index.html`.
 
 ## Commit conventions
-
-End commit messages with:
-```
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-Author is `Bridget Jaeger <…@users.noreply.github.com>` (set in `.git/config` — no global identity on this Mac).
+End commits with `Co-Authored-By: Claude <noreply@anthropic.com>`. Author `Bridget Jaeger <298619132+BJ888BJ@users.noreply.github.com>` (set in `.git/config` on the Mac).
