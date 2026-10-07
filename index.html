@@ -949,6 +949,7 @@ body[data-view="article"] #app{padding-top:0}
 .evlink svg{width:12px;height:12px}
 .evlink:hover{color:var(--bone);border-color:var(--bone)}
 .art-src{margin-top:34px}
+.art-note{margin:30px 0 8px;padding:16px 20px;border-left:3px solid var(--pink);border-radius:0 14px 14px 0;background:var(--glass);font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.5;color:var(--lav)}
 /* standard */
 .std-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:start}
 .scope-ex{padding:12px 0;border-top:1px solid var(--line)}
@@ -2080,12 +2081,13 @@ function Article(id){
       <p class="art-dek">${esc(b.dek)}</p>
       <div class="art-by"><span>By the MORE+ Science Desk</span><span>·</span><span>${esc(b.date)}</span><span>·</span><span>${b.read} min read</span><span>·</span><span>Every source linked</span></div>
       <div class="art-body">${b.body.map(block).join('')}</div>
+      <p class="art-note" data-rv>Information here is educational and not a substitute for professional medical advice — always talk to a qualified clinician about your own health.</p>
       ${prods.length?`<div class="eyebrow" style="margin:34px 0 12px">The proven options on the shelf</div>
       <div class="sts-grid">${prods.map(spcard).join('')}</div>`:''}
       <div class="panel art-src" data-rv>
         <div class="eyebrow" style="margin-bottom:10px">Check our work — every source, one click away</div>
         <div class="src-list">${b.sources.map(s=>extA(s.u,esc(s.l),'evlink')).join('')}</div>
-        <p class="mut" style="font-size:12px;margin-top:14px">Educational information, not medical advice. Talk to your clinician before starting or stopping anything.</p>
+        <p class="mut" style="font-size:12px;margin-top:14px">Information here is educational and not a substitute for professional medical advice — always talk to a qualified clinician about your own health.</p>
       </div>
       <div class="eyebrow" style="margin:40px 0 14px">More breakthroughs</div>
       <div class="bk-grid">${more.map(x=>bkCard(x,false)).join('')}</div>
